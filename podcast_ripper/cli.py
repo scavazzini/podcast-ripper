@@ -60,5 +60,15 @@ def download(feed_url, destination, max_episodes):
     print()
 
 
+@cli.command(help='Print episodes urls')
+@click.option("--max-episodes", type=int)
+@click.argument('feed_url')
+def dump_urls(feed_url, max_episodes):
+
+    podcast = podcast_ripper.parse(feed_url, max_episodes)
+
+    for episode in podcast.episodes:
+        print(episode.file_url)
+
 if __name__ == "__main__":
     cli()
