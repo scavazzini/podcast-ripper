@@ -3,9 +3,10 @@ import os
 
 class Podcast:
 
-    def __init__(self, name, url):
+    def __init__(self, name, url, description):
         self.name = name
         self.url = url
+        self.description = description
         self.episodes = []
 
     def download(self, download_dir, _callback=None):

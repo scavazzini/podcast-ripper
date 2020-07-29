@@ -6,12 +6,12 @@ import requests
 import podcast_ripper
 
 
-def parse(url, max_episodes):
+def parse(url, max_episodes=0):
 
     req = Request(url, headers={'User-Agent': podcast_ripper.__user_agent__})
     parsed = podcastparser.parse(url, urlopen(req), max_episodes)
 
-    podcast = podcast_ripper.Podcast(parsed['title'], parsed['link'])
+    podcast = podcast_ripper.Podcast(parsed.get('title', 'Unknown'), parsed.get('link', ''), parsed.get('description', ''))
 
     for episode in parsed['episodes']:
         episode = podcast_ripper.Episode(episode['title'], episode['published'], episode['enclosures'][0]['url'])
