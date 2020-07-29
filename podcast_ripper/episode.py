@@ -13,10 +13,13 @@ class Episode:
         self.published = published
         self.file_url = file_url
 
-    def download(self, location=''):
+    def download(self, location):
 
         request = requests.get(self.file_url, headers={"User-Agent": podcast_ripper.__user_agent__})
         content = request.content
+
+        if not os.path.exists(location):
+            os.makedirs(location)
 
         path = os.path.join(location, self.filename)
 
