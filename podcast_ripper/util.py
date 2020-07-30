@@ -1,7 +1,6 @@
 import podcastparser
 from urllib.request import urlopen, Request
-
-import requests
+import xml.etree.ElementTree as ET
 
 import podcast_ripper
 
@@ -20,18 +19,32 @@ def parse(url, max_episodes=0):
     return podcast
 
 
+def get_feeds_from_opml(uri):
+
+    opml_file = getfile(uri)
+    root = ET.parse(opml_file).getroot()
+
+    feeds = []
+
+    for element in root.iter():
+
+        if element.get('type') != 'rss' and element.get('type') != 'link':
+            continue
+
+        feed_url = element.get('xmlUrl') or element.get('url')
+
+        if feed_url is None:
+            continue
+
+        feeds.append(feed_url)
+
+    opml_file.close()
+    return feeds
+
 def getfile(uri):
 
     if uri.lower().startswith('http://') or uri.lower().startswith('https://'):
+        req = Request(uri, headers={'User-Agent': podcast_ripper.__user_agent__})
+        return urlopen(req)
 
-        r = requests.get(uri, headers={'User-Agent': podcast_ripper.__user_agent__})
-
-        if not r.ok:
-            raise RuntimeError()
-
-        return r.content
-
-    with open(uri, "rb") as f:
-        content = f.read()
-
-    return content
+    return open(uri, 'rb')
