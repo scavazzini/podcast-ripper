@@ -15,18 +15,29 @@ class Episode:
 
     def download(self, location):
 
-        request = requests.get(self.file_url, headers={"User-Agent": podcast_ripper.__user_agent__})
-        content = request.content
-
         if not os.path.exists(location):
             os.makedirs(location)
 
         path = os.path.join(location, self.filename)
+        downloaded = 0
 
-        with open(path, 'wb') as f:
-            f.write(content)
+        with requests.get(self.file_url, timeout=5, stream=True,
+                          headers={"User-Agent": podcast_ripper.__user_agent__}) as r:
 
-        return len(content)
+            r.raise_for_status()
+
+            try:
+                with open(path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                        downloaded += len(chunk)
+
+            except BaseException as e:
+                if os.path.exists(path):
+                    os.remove(path)
+                raise e
+
+        return downloaded
 
     @property
     def filename(self):
