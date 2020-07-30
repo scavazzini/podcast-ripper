@@ -7,39 +7,42 @@ import podcast_ripper
 
 def parse(url, max_episodes=0):
 
-    req = Request(url, headers={'User-Agent': podcast_ripper.__user_agent__})
-    parsed = podcastparser.parse(url, urlopen(req), max_episodes)
+    with getfile(url) as file:
 
-    podcast = podcast_ripper.Podcast(parsed.get('title', 'Unknown'), parsed.get('link', ''), parsed.get('description', ''))
+        parsed = podcastparser.parse(url, file, max_episodes)
 
-    for episode in parsed['episodes']:
-        episode = podcast_ripper.Episode(episode['title'], episode['published'], episode['enclosures'][0]['url'])
-        podcast.episodes.append(episode)
+        podcast = podcast_ripper.Podcast(parsed.get('title', 'Unknown'),
+                                         parsed.get('link', ''),
+                                         parsed.get('description', ''))
+
+        for episode in parsed['episodes']:
+            episode = podcast_ripper.Episode(episode['title'], episode['published'], episode['enclosures'][0]['url'])
+            podcast.episodes.append(episode)
 
     return podcast
 
 
 def get_feeds_from_opml(uri):
 
-    opml_file = getfile(uri)
-    root = ET.parse(opml_file).getroot()
+    with getfile(uri) as opml_file:
 
-    feeds = []
+        root = ET.parse(opml_file).getroot()
 
-    for element in root.iter():
+        feeds = []
+        for element in root.iter():
 
-        if element.get('type') != 'rss' and element.get('type') != 'link':
-            continue
+            if element.get('type') != 'rss' and element.get('type') != 'link':
+                continue
 
-        feed_url = element.get('xmlUrl') or element.get('url')
+            feed_url = element.get('xmlUrl') or element.get('url')
 
-        if feed_url is None:
-            continue
+            if feed_url is None:
+                continue
 
-        feeds.append(feed_url)
+            feeds.append(feed_url)
 
-    opml_file.close()
     return feeds
+
 
 def getfile(uri):
 
