@@ -3,6 +3,7 @@ import textwrap
 
 import click
 import humanize
+from podcastparser import FeedParseError
 from slug import slug
 
 import podcast_ripper
@@ -26,34 +27,57 @@ def cli():
 def download(feed_url, destination, max_episodes):
     """Download episodes"""
 
-    feeds = [feed_url]
+    podcasts = []
+
+    try:
+        podcast = podcast_ripper.parse(feed_url, max_episodes)
+        podcasts.append(podcast)
+
+    except FeedParseError as exception:
+
+        if exception.getMessage() != 'Unsupported feed type: opml':
+            print('Failed to parse your feed: {}'.format(exception.getMessage()))
+            exit()
+
+        # Feed is a OPML file, try to parse
+        try:
+
+            feeds = podcast_ripper.get_feeds_from_opml(feed_url)
+            if isinstance(feeds, list) and len(feeds) > 0:
+
+                print("OPML with {} feeds found".format(len(feeds)))
+
+                for feed in feeds:
+                    print('Parsing {}'.format(feed))
+                    podcasts.append(podcast_ripper.parse(feed, max_episodes))
+
+        except Exception as exception:
+            print()
+            print('Failed to parse your OPML: {}'.format(str(exception)))
+            exit()
+
+    except Exception as exception:
+        print()
+        print('Failed to parse your feed: {}'.format(exception))
+        exit()
+
     destination = destination or ''
     downloaded = 0
 
-    try:
+    for podcast in podcasts:
 
-        for feed in feeds:
+        download_dir = os.path.join(destination, slug(podcast.name))
 
-            print()
-            print('Fetching feed...')
-            podcast = podcast_ripper.parse(feed, max_episodes)
-            download_dir = os.path.join(destination, slug(podcast.name))
+        print_header = '''
+        {name} ({url})
+        {episodes} episodes to download
 
-            print_header = '''
-            {name} ({url})
-            {episodes} episodes to download
+        Starting download...
+        '''.format(name=podcast.name, url=podcast.url, episodes=len(podcast.episodes))
 
-            Starting download...
-            '''.format(name=podcast.name, url=podcast.url, episodes=len(podcast.episodes))
+        print(textwrap.dedent(print_header))
 
-            print(textwrap.dedent(print_header))
-
-            downloaded += podcast.download(download_dir, progress_callback)
-
-    except KeyboardInterrupt:
-        print()
-        print("Aborted. {} downloaded.".format(humanize.naturalsize(downloaded)))
-        exit()
+        downloaded += podcast.download(download_dir, progress_callback)
 
     print()
     print("Completed. {} downloaded.".format(humanize.naturalsize(downloaded)))
@@ -81,6 +105,7 @@ def dump_urls(feed_url, max_episodes):
 
     for episode in podcast.episodes:
         print(episode.file_url)
+
 
 if __name__ == "__main__":
     cli()
