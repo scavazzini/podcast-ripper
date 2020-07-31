@@ -40,6 +40,7 @@ class Episode:
         return downloaded
 
     @property
+    # TODO: Detect file extension correctly.
     def filename(self):
         return "{}-{}.{}".format(self.published, slug(self.title), self.extension)
 
