@@ -16,8 +16,9 @@ def parse(url, max_episodes=0):
                                          parsed.get('description', ''))
 
         for episode in parsed['episodes']:
-            episode = podcast_ripper.Episode(episode['title'], episode['published'], episode['enclosures'][0]['url'])
-            podcast.episodes.append(episode)
+            if len(episode['enclosures']) > 0:
+                episode = podcast_ripper.Episode(episode['title'], episode['published'], episode['enclosures'][0]['url'])
+                podcast.episodes.append(episode)
 
     return podcast
 
