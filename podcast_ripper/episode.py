@@ -26,6 +26,7 @@ class Episode:
 
             r.raise_for_status()
 
+            # Attach .part in filename until download is complete.
             try:
                 with open(path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):
@@ -40,10 +41,10 @@ class Episode:
         return downloaded
 
     @property
-    # TODO: Detect file extension correctly.
     def filename(self):
         return "{}-{}.{}".format(self.published, slug(self.title), self.extension)
 
     @property
+    # TODO: Detect file extension from content-type or content.
     def extension(self):
         return self.file_url.split('.')[-1].lower()
