@@ -26,7 +26,7 @@ class Episode:
 
             r.raise_for_status()
 
-            # Attach .part in filename until download is complete.
+            # TODO: Attach .part in filename until download is complete.
             try:
                 with open(path, 'wb') as f:
                     for chunk in r.iter_content(chunk_size=8192):

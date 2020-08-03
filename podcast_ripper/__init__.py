@@ -8,3 +8,5 @@ getfile = util.getfile
 
 __version__ = '0.0.1dev'
 __user_agent__ = 'Mozilla/5.0 (X11; Linux x86_64)'
+
+# TODO: Add LICENSE file
