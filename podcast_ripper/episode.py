@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 import requests
@@ -34,7 +35,7 @@ class Episode:
                         downloaded += len(chunk)
 
             except BaseException as e:
-                if os.path.exists(path):
+                with contextlib.suppress(FileNotFoundError):
                     os.remove(path)
                 raise e
 
